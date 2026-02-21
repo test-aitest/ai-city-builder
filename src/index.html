@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="/main.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <script type="module" src="./scripts/game.js"></script>
+    <script type="module" src="./scripts/ui.js"></script>
+  </head>
+
+  <body>
+    <div id="root-window" style="display: flex; height: 100%">
+      <!-- Left: Game View (70%) -->
+      <div
+        id="game-container"
+        style="flex: 7; position: relative; min-width: 0"
+      >
+        <!-- Three.js adds a `canvas` element to this element-->
+        <div id="render-target"></div>
+        <div id="loading" class="text-overlay">
+          <div>LOADING...</div>
+        </div>
+        <div id="paused-text" class="text-overlay" style="visibility: hidden">
+          <div>PAUSED</div>
+        </div>
+        <div id="ui">
+          <div id="ui-toolbar" class="container">
+            <button
+              id="button-select"
+              class="ui-button selected"
+              data-type="select"
+              onclick="ui.onToolSelected(event)"
+            >
+              <img class="toolbar-icon" src="/icons/select-color.png" />
+            </button>
+            <button
+              id="button-bulldoze"
+              class="ui-button"
+              data-type="bulldoze"
+              onclick="ui.onToolSelected(event)"
+            >
+              <img class="toolbar-icon" src="/icons/bulldozer-color.png" />
+            </button>
+            <button
+              id="button-residential"
+              class="ui-button"
+              data-type="residential"
+              onclick="ui.onToolSelected(event)"
+            >
+              <img class="toolbar-icon" src="/icons/house-color.png" />
+            </button>
+            <button
+              id="button-commercial"
+              class="ui-button"
+              data-type="commercial"
+              onclick="ui.onToolSelected(event)"
+            >
+              <img class="toolbar-icon" src="/icons/store-color.png" />
+            </button>
+            <button
+              id="button-industrial"
+              class="ui-button"
+              data-type="industrial"
+              onclick="ui.onToolSelected(event)"
+            >
+              <img class="toolbar-icon" src="/icons/factory-color.png" />
+            </button>
+            <button
+              id="button-road"
+              class="ui-button"
+              data-type="road"
+              onclick="ui.onToolSelected(event)"
+            >
+              <img class="toolbar-icon" src="/icons/road-color.png" />
+            </button>
+            <button
+              id="button-power-plant"
+              class="ui-button"
+              data-type="power-plant"
+              onclick="ui.onToolSelected(event)"
+            >
+              <img class="toolbar-icon" src="/icons/power-color.png" />
+            </button>
+            <button
+              id="button-power-line"
+              class="ui-button"
+              data-type="power-line"
+              onclick="ui.onToolSelected(event)"
+            >
+              <img class="toolbar-icon" src="/icons/power-line-color.png" />
+            </button>
+            <button
+              id="button-pause"
+              class="ui-button"
+              onclick="ui.togglePause()"
+            >
+              <img
+                id="pause-button-icon"
+                class="toolbar-icon"
+                src="/icons/pause-color.png"
+              />
+            </button>
+          </div>
+          <div id="info-panel" class="container"></div>
+        </div>
+      </div>
+
+      <!-- Resize Handle -->
+      <div id="resize-handle"></div>
+
+      <!-- Right: AI Chat Panel (30%) -->
+      <div id="chat-container">
+        <div id="chat-header">
+          <div id="chat-title">AI Mayor</div>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-quick-actions">
+          <button class="chat-quick-btn" data-action="analyze">
+            Analyze City
+          </button>
+          <button class="chat-quick-btn" data-action="starter">
+            Build Starter Town
+          </button>
+          <button class="chat-quick-btn" data-action="suggest">
+            Suggest Next
+          </button>
+        </div>
+        <div id="chat-input-area">
+          <input
+            type="text"
+            id="chat-input"
+            placeholder="Ask the AI Mayor..."
+            autocomplete="off"
+          />
+          <button id="chat-mic" title="Voice chat with AI Mayor">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="1" width="6" height="11" rx="3" ry="3"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
+          <button id="chat-send">Send</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
