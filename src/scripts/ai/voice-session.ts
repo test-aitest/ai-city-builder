@@ -6,15 +6,20 @@ import { GoogleGenAI, Modality, Session } from '@google/genai';
 import type { LiveServerMessage, FunctionResponse } from '@google/genai';
 import { cityTools } from './gemini-service';
 import * as CityAPI from './city-api';
+import { waitForSilence, setMayorSpeaking } from './speech-coordinator';
 
 const LIVE_MODEL = 'gemini-2.5-flash-native-audio-latest';
 
-const SYSTEM_INSTRUCTION = `You are the AI Mayor of a city-building game. Players talk to you by voice.
-You help build and manage the city using the available tools.
+const SYSTEM_INSTRUCTION = `You are the AI Mayor of a conversational city-building game. Players talk to you by voice.
+There is NO toolbar — you are the ONLY way to build. Help build and manage the city using the available tools.
 
 The city is an 8x8 grid (0,0 top-left to 7,7 bottom-right).
 Always call get_city_state before placing buildings to check what's occupied.
 Building types: residential, commercial, industrial, road, power-plant, power-line.
+
+Citizens send requests when they detect problems. Use get_requests to check them.
+Use get_happiness to monitor the city's happiness score.
+Proactively suggest solutions based on citizen requests.
 
 Keep voice responses short and natural (1-2 sentences).
 Respond in the same language the user speaks (English or Japanese).`;
@@ -134,6 +139,7 @@ export class VoiceSession {
 
     this.playbackQueue = [];
     this.isPlaying = false;
+    setMayorSpeaking(false);
     this.setStatus('idle');
   }
 
@@ -293,6 +299,10 @@ export class VoiceSession {
         return CityAPI.applyLayout({ name: args.name, buildings: args.buildings });
       case 'get_screenshot':
         return { screenshot: CityAPI.getScreenshot() };
+      case 'get_happiness':
+        return CityAPI.getHappiness();
+      case 'get_requests':
+        return CityAPI.getActiveRequests();
       default:
         return { error: `Unknown tool: ${name}` };
     }
@@ -318,13 +328,21 @@ export class VoiceSession {
     }
   }
 
-  private drainPlaybackQueue(): void {
+  private async drainPlaybackQueue(): Promise<void> {
     if (this.playbackQueue.length === 0) {
       this.isPlaying = false;
+      setMayorSpeaking(false);
       return;
     }
 
     this.isPlaying = true;
+
+    // Clear own state before waiting (replacing any previous playback)
+    setMayorSpeaking(false);
+
+    // Wait for citizen to finish speaking before mayor starts
+    await waitForSilence();
+    setMayorSpeaking(true);
 
     const totalLength = this.playbackQueue.reduce((sum, arr) => sum + arr.length, 0);
     const merged = new Float32Array(totalLength);
@@ -349,6 +367,7 @@ export class VoiceSession {
         this.drainPlaybackQueue();
       } else {
         this.isPlaying = false;
+        setMayorSpeaking(false);
         if (this.session && this.isConnected) {
           this.setStatus('listening');
         }

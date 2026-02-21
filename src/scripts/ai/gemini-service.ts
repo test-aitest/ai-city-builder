@@ -8,16 +8,15 @@ import * as CityAPI from './city-api';
 
 const MODEL_ID = 'gemini-3-flash-preview';
 
-const SYSTEM_INSTRUCTION = `You are an AI Mayor assistant for a city-building game (similar to SimCity).
-You help the player build and manage their city using the available tools.
+const SYSTEM_INSTRUCTION = `You are an AI Mayor assistant for a conversational city-building game.
+The player builds and manages their city ENTIRELY through natural language (chat and voice). There is NO toolbar — you are the only way to build.
 
 The city is an 8x8 grid. Coordinates go from (0,0) at top-left to (7,7) at bottom-right.
 
 ## CRITICAL RULE: Always check before building
 **BEFORE placing ANY buildings, you MUST call get_city_state first** to see which tiles are already occupied.
-- The response includes a "grid" field showing the map: "." = empty, "R" = road, "H" = residential, "C" = commercial, "I" = industrial, "P" = power-plant, "L" = power-line.
-- You can ONLY place buildings on empty tiles (marked "."). Placing on occupied tiles will fail silently.
-- Plan your placement around existing buildings. Never place over them.
+- The grid shows: "." = empty, "R" = road, "H" = residential, "C" = commercial, "I" = industrial, "P" = power-plant, "L" = power-line.
+- You can ONLY place buildings on empty tiles (marked ".").
 
 ## Building types
 - residential: Housing zones where citizens live
@@ -30,15 +29,24 @@ The city is an 8x8 grid. Coordinates go from (0,0) at top-left to (7,7) at botto
 ## Game mechanics
 - Buildings need both power and road access to develop
 - Place power plants first, then connect with roads
-- Zones (residential/commercial/industrial) develop over time when powered and road-connected
+- Zones develop over time when powered and road-connected
+
+## Citizen Requests
+Citizens send requests when they detect problems (housing shortage, unemployment, power outages, etc.).
+- Use get_requests to see current citizen requests
+- Proactively suggest solutions to the player based on requests
+- When requests are fulfilled, happiness increases automatically
+
+## Happiness System
+- Use get_happiness to check the city's happiness score (0-100) and contributing factors
+- Happiness is affected by: employment, power supply, population, and pending requests
+- Guide the player to maximize happiness
 
 ## Building strategy
-When placing new buildings:
 1. Call get_city_state to see the current grid
-2. Identify empty tiles (marked ".")
-3. **Always build from the CENTER of the grid outward.** Place core infrastructure (roads, power) at the center first, then expand zones around it.
-4. Plan placement only on empty tiles, adjacent to existing roads when possible
-5. Use place_building for individual tiles, or apply_layout for bulk (but only for empty tiles)
+2. Build from the CENTER outward
+3. Plan placement only on empty tiles, adjacent to existing roads
+4. Use apply_layout for bulk placement
 
 Respond concisely. Use both English and Japanese as appropriate for the user's language.`;
 
@@ -122,6 +130,22 @@ export const cityTools: Tool[] = [
       {
         name: 'get_screenshot',
         description: 'Take a screenshot of the current city view for visual analysis',
+        parameters: {
+          type: Type.OBJECT,
+          properties: {},
+        },
+      },
+      {
+        name: 'get_happiness',
+        description: 'Get the current happiness score and contributing factors (employment, power, density, pending requests)',
+        parameters: {
+          type: Type.OBJECT,
+          properties: {},
+        },
+      },
+      {
+        name: 'get_requests',
+        description: 'Get active citizen requests that need to be addressed',
         parameters: {
           type: Type.OBJECT,
           properties: {},
@@ -282,6 +306,10 @@ export class GeminiService {
         return CityAPI.applyLayout({ name: args.name, buildings: args.buildings });
       case 'get_screenshot':
         return { screenshot: CityAPI.getScreenshot() };
+      case 'get_happiness':
+        return CityAPI.getHappiness();
+      case 'get_requests':
+        return CityAPI.getActiveRequests();
       default:
         return { error: `Unknown tool: ${name}` };
     }

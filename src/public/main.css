@@ -55,87 +55,79 @@ h1 {
   padding: 12px;
 }
 
-#ui-toolbar {
-  position: absolute;
-  top: 8px;
-  bottom: 0px;
-  box-shadow: 0px 0px 1px black;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
+/* STATUS BAR */
 
-.ui-button {
-  height: 48px;
-  width: 48px;
-  margin: 4px 0;
-  transition: background-color 0.1s ease-in-out;
-  background-color: #1e2331cd;
-  border: none;
-  border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.ui-button.selected {
-  background-color: #3a3f50d3;
-  outline: 2px solid rgb(101, 101, 135);
-}
-
-.ui-button:not(.selected):hover {
-  background-color: #121622d3;
-}
-
-.ui-container {
-  background-color: #33333355;
-  padding: 16px;
-}
-
-.toolbar-icon {
-  width: 32px;
-  height: 32px;
-  pointer-events: none;
-}
-
-/* TITLE BAR */
-
-#title-bar {
+#status-bar {
   position: absolute;
   top: 0;
-  left: 0px;
+  left: 0;
   right: 0;
   height: 48px;
-  background-color: #00000048;
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
   color: white;
-  padding: 8px;
-  box-shadow: 0px 0px 1px black;
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-}
-
-.title-bar-items {
-  flex: 1 1 33%;
+  padding: 0 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.5em;
+  gap: 32px;
+  z-index: 10;
+  backdrop-filter: blur(4px);
 }
 
-.title-bar-items.title-bar-center-items {
-  font-size: 2em;
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
 }
 
-#population-icon {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  top: -3px;
+.status-label {
+  color: #8899bb;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 #population-counter {
-  margin-left: 8px;
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #e0e6f0;
+}
+
+#happiness-bar {
+  width: 80px;
+  height: 10px;
+  background: #1e2538;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+#happiness-fill {
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(90deg, #ef4444, #eab308, #22c55e);
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+
+#happiness-value {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #e0e6f0;
+}
+
+#request-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  background: #6366f1;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.9em;
+  font-weight: bold;
+  padding: 0 6px;
 }
 
 /* INFO PANEL */

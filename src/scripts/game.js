@@ -159,32 +159,16 @@ export class Game {
     // Update the city data model first, then update the scene
     this.city.simulate(1);
 
-    window.ui.updateTitleBar(this);
+    window.ui.updateStatusBar(this);
     window.ui.updateInfoPanel(this.selectedObject);
   }
 
   /**
-   * Uses the currently active tool
+   * Uses the currently active tool (select only — all building via AI)
    */
   useTool() {
-    switch (window.ui.activeToolId) {
-      case 'select':
-        this.updateSelectedObject();
-        window.ui.updateInfoPanel(this.selectedObject);
-        break;
-      case 'bulldoze':
-        if (this.focusedObject) {
-          const { x, y } = this.focusedObject;
-          this.city.bulldoze(x, y);
-        }
-        break;
-      default:
-        if (this.focusedObject) {
-          const { x, y } = this.focusedObject;
-          this.city.placeBuilding(x, y, window.ui.activeToolId);
-        }
-        break;
-    }
+    this.updateSelectedObject();
+    window.ui.updateInfoPanel(this.selectedObject);
   }
   
   /**

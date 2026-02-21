@@ -92,9 +92,9 @@ export class ChatPanel {
     if (this.isProcessing) return;
 
     const messages: Record<string, string> = {
-      analyze: 'Analyze my city and give me advice on what to improve.',
+      happiness: 'Check the current happiness score and tell me how to improve it.',
       starter: 'Build me a starter town with roads, power, and mixed zones.',
-      suggest: 'Look at my current city and suggest what to build next.',
+      requests: 'Show me the current citizen requests and suggest how to address them.',
     };
 
     const text = messages[action] || action;
@@ -216,12 +216,12 @@ export class ChatPanel {
 
   showWelcome(): void {
     this.addMessage('ai',
-      `Welcome to **AI City Builder**! I'm your AI Mayor assistant.\n\n` +
-      `I can help you build and manage your city. Try:\n` +
-      `- "Build me a starter town"\n` +
-      `- "Add residential area at the north"\n` +
-      `- "Analyze my city"\n\n` +
-      `You can also use the quick action buttons below, or build manually with the toolbar on the left.`
+      `**AI City Builder** へようこそ！チャットか音声で街づくりしましょう。\n\n` +
+      `すべての建設は会話で行います:\n` +
+      `- 「スターターの街を作って」\n` +
+      `- 「北側に住宅地を追加して」\n` +
+      `- 「幸福度をチェックして」\n\n` +
+      `市民のリクエストに応えて幸福度を上げてください！`
     );
   }
 }

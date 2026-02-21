@@ -220,6 +220,51 @@ export function exportLayout(): CityLayout {
   };
 }
 
+export function getHappiness(): any {
+  const city = getCity();
+  if (!city) return { error: 'City not initialized' };
+
+  const pop = city.population;
+  let totalResidents = 0;
+  let employed = 0;
+  let totalBuildings = 0;
+  let poweredBuildings = 0;
+
+  for (let x = 0; x < city.size; x++) {
+    for (let y = 0; y < city.size; y++) {
+      const tile = city.getTile(x, y);
+      if (!tile?.building) continue;
+      const b = tile.building;
+      totalBuildings++;
+      if (b.powered) poweredBuildings++;
+      if (b.type === 'residential') {
+        const residents = b.residents?.count ?? 0;
+        const employedRes = b.residents?.list?.filter((c: any) => c.job)?.length ?? 0;
+        totalResidents += residents;
+        employed += employedRes;
+      }
+    }
+  }
+
+  const pendingRequests = ((window as any).requestEngine?.getActiveRequests?.() ?? []).length;
+
+  return {
+    happiness: Math.round(city.happiness ?? 50),
+    factors: {
+      employment: totalResidents > 0 ? Math.round((employed / totalResidents) * 100) : 0,
+      power: totalBuildings > 0 ? Math.round((poweredBuildings / totalBuildings) * 100) : 0,
+      density: pop > 0 ? 'populated' : 'empty',
+      pendingRequests,
+    },
+  };
+}
+
+export function getActiveRequests(): any {
+  const engine = (window as any).requestEngine;
+  if (!engine) return { requests: [] };
+  return { requests: engine.getActiveRequests() };
+}
+
 export function getScreenshot(): string | null {
   const renderer = getRenderer();
   if (!renderer) return null;
@@ -241,6 +286,10 @@ export function handleCommand(route: string, method: string, body: any): any {
       return applyLayout(body);
     case 'export-layout':
       return exportLayout();
+    case 'happiness':
+      return getHappiness();
+    case 'requests':
+      return getActiveRequests();
     case 'screenshot':
       return { screenshot: getScreenshot() };
     default:

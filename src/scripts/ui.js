@@ -1,18 +1,12 @@
 import { Game } from './game';
 import { SimObject } from './sim/simObject';
-import playIconUrl from '/icons/play-color.png';
-import pauseIconUrl from '/icons/pause-color.png';
 
 export class GameUI {
   /**
-   * Currently selected tool
+   * Currently selected tool (always 'select' — all building via AI)
    * @type {string}
    */
   activeToolId = 'select';
-  /**
-   * @type {HTMLElement | null }
-   */
-  selectedControl = document.getElementById('button-select');
   /**
    * True if the game is currently paused
    * @type {boolean}
@@ -36,56 +30,35 @@ export class GameUI {
   hideLoadingText() {
     document.getElementById('loading').style.visibility = 'hidden';
   }
-  
-  /**
-   * 
-   * @param {*} event 
-   */
-  onToolSelected(event) {
-    // Deselect previously selected button and selected this one
-    if (this.selectedControl) {
-      this.selectedControl.classList.remove('selected');
-    }
-    this.selectedControl = event.target;
-    this.selectedControl.classList.add('selected');
-
-    this.activeToolId = this.selectedControl.getAttribute('data-type');
-  }
 
   /**
-   * Toggles the pause state of the game
+   * Updates the status bar with population, happiness, and request count
+   * @param {Game} game
    */
-  togglePause() {
-    this.isPaused = !this.isPaused;
-    if (this.isPaused) {
-      document.getElementById('pause-button-icon').src = playIconUrl;
-      document.getElementById('paused-text').style.visibility = 'visible';
-    } else {
-      document.getElementById('pause-button-icon').src = pauseIconUrl;
-      document.getElementById('paused-text').style.visibility = 'hidden';
-    }
-  }
-
-  /**
-   * Updates the values in the title bar
-   * @param {Game} game 
-   */
-  updateTitleBar(game) {
-    const cityNameEl = document.getElementById('city-name');
-    if (cityNameEl) cityNameEl.innerHTML = 'AI City Builder';
+  updateStatusBar(game) {
     const popEl = document.getElementById('population-counter');
-    if (popEl) popEl.innerHTML = game.city.population;
-    const simTimeEl = document.getElementById('sim-time');
-    if (simTimeEl) {
-      const date = new Date('1/1/2023');
-      date.setDate(date.getDate() + game.city.simTime);
-      simTimeEl.innerHTML = date.toLocaleDateString();
+    if (popEl) popEl.textContent = game.city.population;
+
+    const happiness = game.city.happiness ?? 50;
+    const happinessFill = document.getElementById('happiness-fill');
+    const happinessValue = document.getElementById('happiness-value');
+    if (happinessFill) {
+      happinessFill.style.width = happiness + '%';
+    }
+    if (happinessValue) {
+      happinessValue.textContent = Math.round(happiness) + '%';
+    }
+
+    const requestBadge = document.getElementById('request-badge');
+    if (requestBadge) {
+      const count = window.requestEngine?.getActiveRequests?.()?.length ?? 0;
+      requestBadge.textContent = count;
     }
   }
 
   /**
    * Updates the info panel with the information in the object
-   * @param {SimObject} object 
+   * @param {SimObject} object
    */
   updateInfoPanel(object) {
     this.selectedObject = object;

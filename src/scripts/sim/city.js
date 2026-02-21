@@ -33,6 +33,11 @@ export class City extends THREE.Group {
    */
   simTime = 0;
   /**
+   * City happiness score (0-100)
+   * @type {number}
+   */
+  happiness = 50;
+  /**
    * 2D array of tiles that make up the city
    * @type {Tile[][]}
    */
@@ -120,6 +125,65 @@ export class City extends THREE.Group {
       }
     }
     this.simTime++;
+    this.#updateHappiness();
+  }
+
+  /**
+   * Recalculates the city happiness score based on current conditions
+   */
+  #updateHappiness() {
+    let score = 50; // base value
+
+    const pop = this.population;
+    let totalResidents = 0;
+    let employed = 0;
+    let totalBuildings = 0;
+    let poweredBuildings = 0;
+    let residentialCount = 0;
+    let commercialCount = 0;
+
+    for (let x = 0; x < this.size; x++) {
+      for (let y = 0; y < this.size; y++) {
+        const tile = this.getTile(x, y);
+        if (!tile?.building) continue;
+
+        const b = tile.building;
+        totalBuildings++;
+
+        if (b.powered) poweredBuildings++;
+
+        if (b.type === 'residential') {
+          residentialCount++;
+          const residents = b.residents?.count ?? 0;
+          const employedRes = b.residents?.list?.filter(c => c.job)?.length ?? 0;
+          totalResidents += residents;
+          employed += employedRes;
+        } else if (b.type === 'commercial') {
+          commercialCount++;
+        }
+      }
+    }
+
+    // Employment bonus: up to +30
+    if (totalResidents > 0) {
+      score += (employed / totalResidents) * 30;
+    }
+
+    // Power supply bonus: up to +10
+    if (totalBuildings > 0) {
+      score += (poweredBuildings / totalBuildings) * 10;
+    }
+
+    // Population density bonus: +10 if any population
+    if (pop > 0) {
+      score += 10;
+    }
+
+    // Pending requests penalty: -5 per request, max -25
+    const pendingRequests = (window.requestEngine?.getActiveRequests?.() ?? []).length;
+    score -= Math.min(pendingRequests * 5, 25);
+
+    this.happiness = Math.max(0, Math.min(100, score));
   }
 
   /**

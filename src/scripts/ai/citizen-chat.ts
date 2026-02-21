@@ -1,10 +1,12 @@
 /**
  * Citizen Chat Dialog - Click a citizen to open a conversation powered by Gemini.
  * Each citizen has a unique personality based on their state, age, and workplace.
+ * Voice is provided by CitizenVoice (Gemini Live API native audio).
  */
 import { GoogleGenAI } from '@google/genai';
 import type { Content } from '@google/genai';
 import * as CityAPI from './city-api';
+import type { CitizenVoice } from './citizen-voice';
 
 const MODEL_ID = 'gemini-3-flash-preview';
 
@@ -26,6 +28,7 @@ export class CitizenChatDialog {
   private chatHistory: Content[] = [];
   private currentCitizen: CitizenInfo | null = null;
   private isProcessing = false;
+  private voice: CitizenVoice | null = null;
 
   constructor() {
     this.dialogEl = this.createDOM();
@@ -40,6 +43,18 @@ export class CitizenChatDialog {
 
   initialize(apiKey: string): void {
     this.ai = new GoogleGenAI({ apiKey });
+  }
+
+  /** Set the CitizenVoice instance for audio playback */
+  setVoice(voice: CitizenVoice): void {
+    this.voice = voice;
+  }
+
+  /** Speak text aloud using Gemini Live API citizen voice. Can be called externally. */
+  async speakAsCitizen(text: string): Promise<void> {
+    if (this.voice) {
+      await this.voice.speak(text);
+    }
   }
 
   private createDOM(): HTMLElement {
@@ -87,6 +102,7 @@ export class CitizenChatDialog {
     // Show greeting based on state
     const greeting = this.getGreeting(citizen);
     this.addBubble('citizen', greeting);
+    this.speakAsCitizen(greeting);
 
     this.inputEl.focus();
   }
@@ -170,6 +186,7 @@ Rules:
 
       this.chatHistory.push({ role: 'model', parts: [{ text: reply }] });
       this.addBubble('citizen', reply);
+      this.speakAsCitizen(reply);
     } catch (err: any) {
       this.addBubble('citizen', `(Error: ${err.message})`);
     } finally {
