@@ -2,12 +2,12 @@
  * Gemini 3 SDK wrapper with Function Calling tools for city operations.
  * Uses @google/genai SDK.
  */
-import { GoogleGenAI, Type } from '@google/genai';
-import type { Content, FunctionCall, Tool } from '@google/genai';
-import * as CityAPI from './city-api';
-import type { CitizenRequest } from './request-engine';
+import { GoogleGenAI, Type } from "@google/genai";
+import type { Content, FunctionCall, Tool } from "@google/genai";
+import * as CityAPI from "./city-api";
+import type { CitizenRequest } from "./request-engine";
 
-const MODEL_ID = 'gemini-3-flash-preview';
+const MODEL_ID = "gemini-3-flash-preview";
 
 const SYSTEM_INSTRUCTION = `You are an AI Mayor assistant for a conversational city-building game.
 The player builds and manages their city ENTIRELY through natural language (chat and voice). There is NO toolbar — you are the only way to build.
@@ -62,123 +62,181 @@ When you receive a citizen request:
    - If the citizen says it's not enough → build more to address the remaining issue, then ask_citizen again
 4. **CRITICAL: Once the citizen is satisfied, you MUST call mark_request_resolved.** This is mandatory — without it, the citizen cannot give their final evaluation and the system will stall.
 
+## Disaster System (HIGHEST PRIORITY)
+Earthquakes can strike the city randomly. **Disaster recovery is the TOP PRIORITY** — always handle it before any other requests.
+- Affected tiles show "X" on grid and turn red visually
+- Buildings on affected tiles are destroyed
+- Each tile has random damage (recovery takes 5-10 minutes naturally)
+- Use get_disaster_status to see all affected tiles and their progress
+- recover_tile starts active recovery on a specific tile (5x speed boost, shows recovery icon)
+- **IMPORTANT: Do NOT call recover_tile automatically. Wait for the player to instruct you which tiles to recover.**
+- When a disaster occurs, report the situation to the player and suggest recovery, but wait for their approval before executing recover_tile
+- Cannot build/bulldoze on damaged tiles until fully recovered
+- Reassure citizens and maintain morale during disasters
+- After all tiles recover, rebuild destroyed buildings
+
 Respond concisely. Use both English and Japanese as appropriate for the user's language.`;
 
 export const cityTools: Tool[] = [
   {
     functionDeclarations: [
       {
-        name: 'get_city_state',
-        description: 'Get the current state of the city including all buildings, population, and statistics',
+        name: "get_city_state",
+        description:
+          "Get the current state of the city including all buildings, population, and statistics",
         parameters: {
           type: Type.OBJECT,
           properties: {},
         },
       },
       {
-        name: 'place_building',
-        description: 'Place a single building at the specified coordinates',
+        name: "place_building",
+        description: "Place a single building at the specified coordinates",
         parameters: {
           type: Type.OBJECT,
           properties: {
-            x: { type: Type.NUMBER, description: 'X coordinate (0-7)' },
-            y: { type: Type.NUMBER, description: 'Y coordinate (0-7)' },
-            type: { type: Type.STRING, description: 'Building type: residential, commercial, industrial, road, power-plant, power-line' },
+            x: { type: Type.NUMBER, description: "X coordinate (0-7)" },
+            y: { type: Type.NUMBER, description: "Y coordinate (0-7)" },
+            type: {
+              type: Type.STRING,
+              description:
+                "Building type: residential, commercial, industrial, road, power-plant, power-line",
+            },
           },
-          required: ['x', 'y', 'type'],
+          required: ["x", "y", "type"],
         },
       },
       {
-        name: 'bulldoze',
-        description: 'Remove/demolish a building at the specified coordinates',
+        name: "bulldoze",
+        description: "Remove/demolish a building at the specified coordinates",
         parameters: {
           type: Type.OBJECT,
           properties: {
-            x: { type: Type.NUMBER, description: 'X coordinate' },
-            y: { type: Type.NUMBER, description: 'Y coordinate' },
+            x: { type: Type.NUMBER, description: "X coordinate" },
+            y: { type: Type.NUMBER, description: "Y coordinate" },
           },
-          required: ['x', 'y'],
+          required: ["x", "y"],
         },
       },
       {
-        name: 'zone_area',
-        description: 'Place buildings in a rectangular area from (x1,y1) to (x2,y2)',
+        name: "zone_area",
+        description:
+          "Place buildings in a rectangular area from (x1,y1) to (x2,y2)",
         parameters: {
           type: Type.OBJECT,
           properties: {
-            x1: { type: Type.NUMBER, description: 'Start X' },
-            y1: { type: Type.NUMBER, description: 'Start Y' },
-            x2: { type: Type.NUMBER, description: 'End X' },
-            y2: { type: Type.NUMBER, description: 'End Y' },
-            type: { type: Type.STRING, description: 'Building type' },
+            x1: { type: Type.NUMBER, description: "Start X" },
+            y1: { type: Type.NUMBER, description: "Start Y" },
+            x2: { type: Type.NUMBER, description: "End X" },
+            y2: { type: Type.NUMBER, description: "End Y" },
+            type: { type: Type.STRING, description: "Building type" },
           },
-          required: ['x1', 'y1', 'x2', 'y2', 'type'],
+          required: ["x1", "y1", "x2", "y2", "type"],
         },
       },
       {
-        name: 'apply_layout',
-        description: 'Apply a JSON layout to build multiple buildings at once. Supports range placement with to_x/to_y.',
+        name: "apply_layout",
+        description:
+          "Apply a JSON layout to build multiple buildings at once. Supports range placement with to_x/to_y.",
         parameters: {
           type: Type.OBJECT,
           properties: {
-            name: { type: Type.STRING, description: 'Layout name' },
+            name: { type: Type.STRING, description: "Layout name" },
             buildings: {
               type: Type.ARRAY,
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  type: { type: Type.STRING, description: 'Building type' },
-                  x: { type: Type.NUMBER, description: 'X coordinate' },
-                  y: { type: Type.NUMBER, description: 'Y coordinate' },
-                  to_x: { type: Type.NUMBER, description: 'Optional end X for range placement' },
-                  to_y: { type: Type.NUMBER, description: 'Optional end Y for range placement' },
+                  type: { type: Type.STRING, description: "Building type" },
+                  x: { type: Type.NUMBER, description: "X coordinate" },
+                  y: { type: Type.NUMBER, description: "Y coordinate" },
+                  to_x: {
+                    type: Type.NUMBER,
+                    description: "Optional end X for range placement",
+                  },
+                  to_y: {
+                    type: Type.NUMBER,
+                    description: "Optional end Y for range placement",
+                  },
                 },
-                required: ['type', 'x', 'y'],
+                required: ["type", "x", "y"],
               },
-              description: 'Array of building placements',
+              description: "Array of building placements",
             },
           },
-          required: ['buildings'],
+          required: ["buildings"],
         },
       },
       {
-        name: 'get_screenshot',
-        description: 'Take a screenshot of the current city view for visual analysis',
+        name: "get_screenshot",
+        description:
+          "Take a screenshot of the current city view for visual analysis",
         parameters: {
           type: Type.OBJECT,
           properties: {},
         },
       },
       {
-        name: 'get_happiness',
-        description: 'Get the current happiness score and contributing factors (employment, power, density, pending requests)',
+        name: "get_happiness",
+        description:
+          "Get the current happiness score and contributing factors (employment, power, density, pending requests)",
         parameters: {
           type: Type.OBJECT,
           properties: {},
         },
       },
       {
-        name: 'get_requests',
-        description: 'Get active citizen requests that need to be addressed',
+        name: "get_requests",
+        description: "Get active citizen requests that need to be addressed",
         parameters: {
           type: Type.OBJECT,
           properties: {},
         },
       },
       {
-        name: 'ask_citizen',
-        description: 'Ask the citizen if their request has been addressed. Checks the current city state against the request and returns whether the problem is resolved and what is still needed. Use this after building to confirm before calling mark_request_resolved.',
+        name: "ask_citizen",
+        description:
+          "Ask the citizen if their request has been addressed. Checks the current city state against the request and returns whether the problem is resolved and what is still needed. Use this after building to confirm before calling mark_request_resolved.",
         parameters: {
           type: Type.OBJECT,
           properties: {},
         },
       },
       {
-        name: 'mark_request_resolved',
-        description: 'MANDATORY: Call this immediately after completing construction for a citizen request. Without this call, the citizen cannot evaluate the result and the request system stalls. Always call this as the last step after building.',
+        name: "mark_request_resolved",
+        description:
+          "MANDATORY: Call this immediately after completing construction for a citizen request. Without this call, the citizen cannot evaluate the result and the request system stalls. Always call this as the last step after building.",
         parameters: {
           type: Type.OBJECT,
           properties: {},
+        },
+      },
+      {
+        name: "get_disaster_status",
+        description:
+          "Get info about active disaster: affected tiles, recovery progress, estimated remaining seconds",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {},
+        },
+      },
+      {
+        name: "recover_tile",
+        description:
+          "Start active recovery work on a specific damaged tile. This speeds up recovery 5x and shows a recovery icon. Use this to prioritize specific tiles for faster rebuilding.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {
+            x: {
+              type: Type.NUMBER,
+              description: "X coordinate of the damaged tile",
+            },
+            y: {
+              type: Type.NUMBER,
+              description: "Y coordinate of the damaged tile",
+            },
+          },
+          required: ["x", "y"],
         },
       },
     ],
@@ -209,7 +267,7 @@ export class GeminiService {
       this.ai = new GoogleGenAI({ apiKey });
       return true;
     } catch (e) {
-      console.error('Failed to initialize Gemini:', e);
+      console.error("Failed to initialize Gemini:", e);
       return false;
     }
   }
@@ -219,11 +277,11 @@ export class GeminiService {
   }
 
   async sendMessage(userMessage: string): Promise<string> {
-    if (!this.ai) throw new Error('Gemini not initialized');
+    if (!this.ai) throw new Error("Gemini not initialized");
 
     this._isBusy = true;
     this.chatHistory.push({
-      role: 'user',
+      role: "user",
       parts: [{ text: userMessage }],
     });
 
@@ -234,17 +292,20 @@ export class GeminiService {
     }
   }
 
-  async sendMessageWithImage(userMessage: string, imageBase64: string): Promise<string> {
-    if (!this.ai) throw new Error('Gemini not initialized');
+  async sendMessageWithImage(
+    userMessage: string,
+    imageBase64: string,
+  ): Promise<string> {
+    if (!this.ai) throw new Error("Gemini not initialized");
 
     // Strip data URL prefix if present
-    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
     this.chatHistory.push({
-      role: 'user',
+      role: "user",
       parts: [
         { text: userMessage },
-        { inlineData: { mimeType: 'image/png', data: base64Data } },
+        { inlineData: { mimeType: "image/png", data: base64Data } },
       ],
     });
 
@@ -252,7 +313,7 @@ export class GeminiService {
   }
 
   private async generateAndHandleTools(): Promise<string> {
-    if (!this.ai) throw new Error('Gemini not initialized');
+    if (!this.ai) throw new Error("Gemini not initialized");
 
     let maxIterations = 10;
 
@@ -268,16 +329,19 @@ export class GeminiService {
           },
         });
       } catch (apiErr: any) {
-        console.error('[Gemini] API call failed:', apiErr);
+        console.error("[Gemini] API call failed:", apiErr);
         return `API Error: ${apiErr.message || apiErr}`;
       }
 
-      console.log('[Gemini] Response:', JSON.stringify(response).substring(0, 500));
+      console.log(
+        "[Gemini] Response:",
+        JSON.stringify(response).substring(0, 500),
+      );
 
       const candidate = response.candidates?.[0];
       if (!candidate?.content?.parts) {
-        console.warn('[Gemini] No candidates in response:', response);
-        return 'No response from AI';
+        console.warn("[Gemini] No candidates in response:", response);
+        return "No response from AI";
       }
 
       // Add the model's response to history
@@ -285,7 +349,7 @@ export class GeminiService {
 
       // Check for function calls
       const functionCalls = candidate.content.parts.filter(
-        (p: any) => p.functionCall
+        (p: any) => p.functionCall,
       );
 
       if (functionCalls.length === 0) {
@@ -293,8 +357,8 @@ export class GeminiService {
         const text = candidate.content.parts
           .filter((p: any) => p.text)
           .map((p: any) => p.text)
-          .join('');
-        return text || 'Done!';
+          .join("");
+        return text || "Done!";
       }
 
       // Execute function calls
@@ -324,44 +388,51 @@ export class GeminiService {
 
       // Add tool results to history
       this.chatHistory.push({
-        role: 'user',
+        role: "user",
         parts: functionResponses,
       });
     }
 
-    return 'Reached maximum tool call iterations';
+    return "Reached maximum tool call iterations";
   }
 
   private executeTool(name: string, args: any): any {
     switch (name) {
-      case 'get_city_state':
+      case "get_city_state":
         return CityAPI.getCityState();
-      case 'place_building':
+      case "place_building":
         return CityAPI.placeBuilding(args.x, args.y, args.type);
-      case 'bulldoze':
+      case "bulldoze":
         return CityAPI.bulldoze(args.x, args.y);
-      case 'zone_area':
+      case "zone_area":
         return CityAPI.zoneArea(args.x1, args.y1, args.x2, args.y2, args.type);
-      case 'apply_layout':
-        return CityAPI.applyLayout({ name: args.name, buildings: args.buildings });
-      case 'get_screenshot':
+      case "apply_layout":
+        return CityAPI.applyLayout({
+          name: args.name,
+          buildings: args.buildings,
+        });
+      case "get_screenshot":
         return { screenshot: CityAPI.getScreenshot() };
-      case 'get_happiness':
+      case "get_happiness":
         return CityAPI.getHappiness();
-      case 'get_requests':
+      case "get_requests":
         return CityAPI.getActiveRequests();
-      case 'ask_citizen': {
+      case "ask_citizen": {
         const engine = (window as any).requestEngine;
-        if (!engine) return { error: 'Request engine not available' };
+        if (!engine) return { error: "Request engine not available" };
         const status = engine.checkRequestStatus();
         if (!status.request) return { message: status.detail };
         // Use suggestion directly — no nested API call, fast and reliable
         const citizenMsg = status.resolved
-          ? `市長、ありがとうございます！おかげで改善されました。`
+          ? `ありがとうございます！改善されました。`
           : status.suggestion;
         // Show citizen response in chat (voice is NOT triggered here to avoid blocking the tool loop)
         const panel = (window as any).chatPanel;
-        if (panel) panel.addMessage('system', `🗣️ ${status.request.citizenName}: ${citizenMsg}`);
+        if (panel)
+          panel.addMessage(
+            "system",
+            `🗣️ ${status.request.citizenName}: ${citizenMsg}`,
+          );
         return {
           citizenName: status.request.citizenName,
           requestType: status.request.type,
@@ -369,13 +440,29 @@ export class GeminiService {
           citizenResponse: citizenMsg,
           detail: status.detail,
           hint: status.resolved
-            ? 'The citizen is satisfied. You should now call mark_request_resolved.'
+            ? "The citizen is satisfied. You should now call mark_request_resolved."
             : `Not resolved yet. Citizen says: ${status.suggestion}`,
         };
       }
-      case 'mark_request_resolved':
+      case "mark_request_resolved":
         (window as any).requestEngine?.markResolved();
-        return { success: true, message: 'Request marked as resolved. Citizen evaluation will follow.' };
+        return {
+          success: true,
+          message:
+            "Request marked as resolved. Citizen evaluation will follow.",
+        };
+      case "get_disaster_status": {
+        const city = (window as any).game?.city;
+        if (!city?.disasterService)
+          return { error: "Disaster service not available" };
+        return city.disasterService.getDisasterInfo();
+      }
+      case "recover_tile": {
+        const city = (window as any).game?.city;
+        if (!city?.disasterService)
+          return { error: "Disaster service not available" };
+        return city.disasterService.recoverTile(city, args.x, args.y);
+      }
       default:
         return { error: `Unknown tool: ${name}` };
     }

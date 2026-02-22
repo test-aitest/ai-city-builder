@@ -54,6 +54,22 @@ export class GameUI {
       const count = window.requestEngine?.getActiveRequests?.()?.length ?? 0;
       requestBadge.textContent = count;
     }
+
+    // Disaster indicator
+    const disaster = game.city.activeDisaster;
+    let disasterEl = document.getElementById('disaster-indicator');
+    if (disaster) {
+      if (!disasterEl) {
+        disasterEl = document.createElement('span');
+        disasterEl.id = 'disaster-indicator';
+        disasterEl.style.cssText = 'color: #ff3333; font-weight: bold; margin-left: 12px;';
+        const statusBar = document.getElementById('status-bar');
+        if (statusBar) statusBar.appendChild(disasterEl);
+      }
+      disasterEl.textContent = `被災: ${disaster.affectedTiles.length}タイル`;
+    } else if (disasterEl) {
+      disasterEl.remove();
+    }
   }
 
   /**

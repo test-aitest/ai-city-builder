@@ -72,7 +72,10 @@ export function getCityState(): any {
     let row = `${prefix} Y${y} `;
     for (let x = 0; x < city.size; x++) {
       const tile = city.getTile(x, y);
-      if (tile?.building) {
+      if (tile?.damaged) {
+        if (tile.building) buildings.push({ type: tile.building.type, x, y });
+        row += 'X ';
+      } else if (tile?.building) {
         buildings.push({ type: tile.building.type, x, y });
         row += (TYPE_CHAR[tile.building.type] || '?') + ' ';
       } else {
@@ -88,7 +91,7 @@ export function getCityState(): any {
     population: city.population,
     simTime: city.simTime,
     grid: gridLines.join('\n'),
-    gridLegend: '. = empty, R = road, H = residential, C = commercial, I = industrial, P = power-plant, L = power-line',
+    gridLegend: '. = empty, R = road, H = residential, C = commercial, I = industrial, P = power-plant, L = power-line, X = damaged',
     buildings,
     buildingCount: buildings.length,
   };
@@ -103,6 +106,9 @@ export function placeBuilding(x: number, y: number, type: string): any {
 
   const city = getCity();
   const tile = city.getTile(x, y);
+  if (tile?.damaged) {
+    return { success: false, error: `Tile (${x},${y}) is damaged and cannot be modified until recovered` };
+  }
   if (tile?.building) {
     return { success: false, error: `Tile (${x},${y}) already has a building: ${tile.building.type}` };
   }
@@ -117,6 +123,9 @@ export function bulldoze(x: number, y: number): any {
 
   const city = getCity();
   const tile = city.getTile(x, y);
+  if (tile?.damaged) {
+    return { success: false, error: `Tile (${x},${y}) is damaged and cannot be modified until recovered` };
+  }
   if (!tile?.building) {
     return { success: false, error: `No building at (${x},${y})` };
   }

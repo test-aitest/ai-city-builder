@@ -26,6 +26,11 @@ When you receive a citizen request:
 3. After building, call ask_citizen to check if the citizen is satisfied
 4. If satisfied → call mark_request_resolved. If not → build more, then ask_citizen again.
 
+## Disaster System (HIGHEST PRIORITY)
+Earthquakes destroy buildings. Disaster recovery is TOP PRIORITY.
+Use get_disaster_status to check affected tiles, then recover_tile on each to speed up recovery 5x.
+Reassure citizens and rebuild after recovery.
+
 Keep voice responses short and natural (1-2 sentences).
 Respond in the same language the user speaks (English or Japanese).`;
 
@@ -362,6 +367,16 @@ export class VoiceSession {
       case 'mark_request_resolved':
         (window as any).requestEngine?.markResolved();
         return { success: true, message: 'Request marked as resolved. Citizen evaluation will follow.' };
+      case 'get_disaster_status': {
+        const city = (window as any).game?.city;
+        if (!city?.disasterService) return { error: 'Disaster service not available' };
+        return city.disasterService.getDisasterInfo();
+      }
+      case 'recover_tile': {
+        const city = (window as any).game?.city;
+        if (!city?.disasterService) return { error: 'Disaster service not available' };
+        return city.disasterService.recoverTile(city, args.x, args.y);
+      }
       default:
         return { error: `Unknown tool: ${name}` };
     }

@@ -19,12 +19,13 @@ export interface CitySnapshot {
   powerLineCount: number;
   roadCount: number;
   noRoadAccess: number;
+  damagedTileCount: number;
 }
 
 export interface CitizenRequest {
   id: string;
   citizenName: string;
-  type: 'housing' | 'jobs' | 'power' | 'road' | 'commerce';
+  type: 'housing' | 'jobs' | 'power' | 'road' | 'commerce' | 'disaster';
   message: string;
   createdAt: number;
   status: 'active' | 'fulfilled' | 'expired';
@@ -225,6 +226,14 @@ export class RequestEngine {
         }
         break;
       }
+      case 'disaster': {
+        resolved = now.damagedTileCount === 0;
+        detail = `被災タイル: ${now.damagedTileCount}`;
+        if (!resolved) {
+          suggestion = `まだ${now.damagedTileCount}タイルが被災しています。復旧は自動で進行中です。`;
+        }
+        break;
+      }
     }
 
     return { resolved, request: req, detail, suggestion };
@@ -233,6 +242,9 @@ export class RequestEngine {
   // ── Private ──
 
   private tryGenerateRequest(): void {
+    // Pause normal requests during active disaster
+    if (this.city.activeDisaster) return;
+
     // Wait for the dynamic cooldown since last idle transition
     const now = Date.now();
     if (now - this.lastIdleTime < this.nextCooldownMs) return;
@@ -288,8 +300,8 @@ export class RequestEngine {
     const delta = this.computeHappinessDelta(request, before, after);
     console.log(`[RequestEngine] evaluate: ${request.type} delta=${delta}`);
 
-    // Apply happiness change
-    this.city.happiness = Math.max(0, Math.min(100, (this.city.happiness ?? 50) + delta));
+    // Apply happiness change via bonus (persists across #updateHappiness recalculations)
+    this.city.happinessBonus = (this.city.happinessBonus ?? 0) + delta;
 
     const deltaStr = delta >= 0 ? `+${delta}` : `${delta}`;
     this.notify(
@@ -336,6 +348,9 @@ export class RequestEngine {
       case 'commerce':
         delta = after.commercialCount > before.commercialCount ? 10 : -2;
         break;
+      case 'disaster':
+        delta = after.damagedTileCount === 0 ? 15 : -5;
+        break;
     }
 
     return delta;
@@ -354,10 +369,12 @@ export class RequestEngine {
     let powerLineCount = 0;
     let roadCount = 0;
     let noRoadAccess = 0;
+    let damagedTileCount = 0;
 
     for (let x = 0; x < city.size; x++) {
       for (let y = 0; y < city.size; y++) {
         const tile = city.getTile(x, y);
+        if (tile?.damaged) damagedTileCount++;
         if (!tile?.building) continue;
         const b = tile.building;
 
@@ -403,6 +420,7 @@ export class RequestEngine {
       powerLineCount,
       roadCount,
       noRoadAccess,
+      damagedTileCount,
     };
   }
 
@@ -423,26 +441,26 @@ export class RequestEngine {
     const happiness = this.city.happiness ?? 50;
     const problems = this.detectProblems();
 
-    // Base: 25s — a calm city doesn't get complaints quickly
-    let cooldown = 25_000;
+    // Base: 60s — give the player time to breathe between requests
+    let cooldown = 60_000;
 
     // Unhappy citizens are more vocal (0-100 scale, lower = shorter wait)
-    // At happiness=0: -8s, at happiness=100: 0s
-    cooldown -= ((100 - happiness) / 100) * 8_000;
+    // At happiness=0: -15s, at happiness=100: 0s
+    cooldown -= ((100 - happiness) / 100) * 15_000;
 
     // More simultaneous problems = more urgency (max 5 problem types)
-    // Each problem shaves off ~2s, max -10s
-    cooldown -= Math.min(problems.length * 2_000, 10_000);
+    // Each problem shaves off ~3s, max -15s
+    cooldown -= Math.min(problems.length * 3_000, 15_000);
 
     // Larger population = more voices, shorter intervals
-    // Caps at population 30 for -5s
-    cooldown -= Math.min(snap.population * 170, 5_000);
+    // Caps at population 30 for -10s
+    cooldown -= Math.min(snap.population * 330, 10_000);
 
-    // Random jitter: ±4s for natural variation
-    cooldown += (Math.random() - 0.5) * 8_000;
+    // Random jitter: ±8s for natural variation
+    cooldown += (Math.random() - 0.5) * 16_000;
 
-    // Clamp: min 8s, max 40s
-    return Math.max(8_000, Math.min(40_000, cooldown));
+    // Clamp: min 20s, max 90s
+    return Math.max(20_000, Math.min(90_000, cooldown));
   }
 
   private detectProblems(): string[] {
@@ -465,6 +483,9 @@ export class RequestEngine {
     if (snap.residentialCount > 0 && snap.commercialCount < snap.residentialCount * 0.3) {
       problems.push('commerce');
     }
+    if (snap.damagedTileCount > 0) {
+      problems.push('disaster');
+    }
 
     return problems;
   }
@@ -477,6 +498,7 @@ export class RequestEngine {
       power: '停電が続いています。発電所と送電線をお願いします！',
       road: '道路がなくて不便です。道路を整備してください！',
       commerce: '買い物できる場所が少ないです。商業施設を増やしてください！',
+      disaster: '大地震が起きました！街が壊れています、助けてください！',
     };
 
     return {

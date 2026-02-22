@@ -40,12 +40,30 @@ export default {
   },
   vehicle: {
     // The distance travelled per millisecond
-    speed: 0.0005,            
+    speed: 0.0005,
     // The start/end time where the vehicle should fade
-    fadeTime: 500,  
-    // Maximum lifetime of a vehicle (controls max # of vehicles on screen)     
+    fadeTime: 500,
+    // Maximum lifetime of a vehicle (controls max # of vehicles on screen)
     maxLifetime: 10000,
     // How often vehicles are spawned in milliseconds
-    spawnInterval: 1000     
+    spawnInterval: 1000
+  },
+  disaster: {
+    // Minimum number of buildings before disasters can occur
+    minBuildingsForDisaster: 8,
+    // Minimum sim ticks between disasters
+    minTicksBetweenDisasters: 60,
+    // Probability of disaster per tick (when conditions met)
+    disasterChance: 0.02,
+    // Minimum affected area size
+    minAffectedSize: 2,
+    // Maximum affected area size
+    maxAffectedSize: 3,
+    // Min ticks for full recovery (5 minutes)
+    minRecoveryTicks: 300,
+    // Max ticks for full recovery (10 minutes)
+    maxRecoveryTicks: 600,
+    // Speed multiplier when actively recovering via recover_tile command
+    activeRecoveryMultiplier: 5,
   },
 }

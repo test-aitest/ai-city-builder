@@ -4,6 +4,7 @@ import { createBuilding } from './buildings/buildingFactory.js';
 import { Tile } from './tile.js';
 import { VehicleGraph } from './vehicles/vehicleGraph.js';
 import { PowerService } from './services/power.js';
+import { DisasterService } from './services/disaster.js';
 import { SimService } from './services/simService.js';
 
 export class City extends THREE.Group {
@@ -38,6 +39,12 @@ export class City extends THREE.Group {
    */
   happiness = 50;
   /**
+   * Accumulated happiness bonus/penalty from resolved requests.
+   * Decays slowly over time so the effect is temporary but visible.
+   * @type {number}
+   */
+  happinessBonus = 0;
+  /**
    * 2D array of tiles that make up the city
    * @type {Tile[][]}
    */
@@ -71,7 +78,9 @@ export class City extends THREE.Group {
 
     this.services = [];
     this.services.push(new PowerService());
-    
+    this.disasterService = new DisasterService();
+    this.services.push(this.disasterService);
+
     this.vehicleGraph = new VehicleGraph(this.size);
     this.debugMeshes.add(this.vehicleGraph);
   }
@@ -89,6 +98,13 @@ export class City extends THREE.Group {
       }
     }
     return population;
+  }
+
+  /**
+   * Returns the active disaster info (if any)
+   */
+  get activeDisaster() {
+    return this.disasterService.activeDisaster;
   }
 
   /** Returns the title at the coordinates. If the coordinates
@@ -182,6 +198,20 @@ export class City extends THREE.Group {
     // Pending request penalty: -3 if there is an active request (max 1 at a time)
     const hasActiveRequest = (window.requestEngine?.getActiveRequests?.() ?? []).length > 0;
     if (hasActiveRequest) score -= 3;
+
+    // Disaster penalty: up to -20 based on affected tile count
+    if (this.disasterService.activeDisaster) {
+      const n = this.disasterService.activeDisaster.affectedTiles.length;
+      score -= Math.min(20, n * 5);
+    }
+
+    // Apply accumulated bonus from resolved requests (decays slowly)
+    score += this.happinessBonus;
+    if (this.happinessBonus > 0) {
+      this.happinessBonus = Math.max(0, this.happinessBonus - 0.1);
+    } else if (this.happinessBonus < 0) {
+      this.happinessBonus = Math.min(0, this.happinessBonus + 0.1);
+    }
 
     this.happiness = Math.max(0, Math.min(100, score));
   }

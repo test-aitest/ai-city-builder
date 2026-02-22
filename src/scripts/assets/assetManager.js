@@ -17,7 +17,9 @@ export class AssetManager {
 
   statusIcons = {
     'no-power': this.#loadTexture(`${baseUrl}statusIcons/no-power.png`, true),
-    'no-road-access': this.#loadTexture(`${baseUrl}statusIcons/no-road-access.png`, true)
+    'no-road-access': this.#loadTexture(`${baseUrl}statusIcons/no-road-access.png`, true),
+    'repairing': this.#loadTexture(`${baseUrl}statusIcons/repairing.png`, true),
+    'recovering': this.#loadTexture(`${baseUrl}statusIcons/recovering.png`, true),
   }
 
   models = {};

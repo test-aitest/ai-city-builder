@@ -29,6 +29,11 @@ export class Building extends SimObject {
    */
   status = BuildingStatus.Ok;
   /**
+   * Whether this building is damaged by a disaster
+   * @type {boolean}
+   */
+  isDamaged = false;
+  /**
    * Icon displayed when building status
    * @type {Sprite}
    */
@@ -64,6 +69,39 @@ export class Building extends SimObject {
     } else {
       this.setStatus(null);
     }
+  }
+
+  applyDamageEffect() {
+    this.isDamaged = true;
+    if (this.mesh) {
+      this.mesh.traverse((obj) => {
+        if (obj.material) {
+          obj.material.color.setHex(0x8b3a3a);
+        }
+      });
+      this.mesh.scale.set(0.85, 0.7, 0.85);
+      this.mesh.rotation.z = THREE.MathUtils.degToRad(3);
+    }
+  }
+
+  updateDamageEffect(progress) {
+    if (!this.mesh) return;
+    const damagedColor = new THREE.Color(0x8b3a3a);
+    const normalColor = new THREE.Color(0xffffff);
+    const lerpedColor = damagedColor.clone().lerp(normalColor, progress);
+    this.mesh.traverse((obj) => {
+      if (obj.material) {
+        obj.material.color.copy(lerpedColor);
+      }
+    });
+    const s = 0.85 + 0.15 * progress;
+    const sy = 0.7 + 0.3 * progress;
+    this.mesh.scale.set(s, sy, s);
+    this.mesh.rotation.z = THREE.MathUtils.degToRad(3 * (1 - progress));
+  }
+
+  clearDamageEffect() {
+    this.isDamaged = false;
   }
 
   dispose() {
