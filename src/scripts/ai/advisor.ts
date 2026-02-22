@@ -38,6 +38,7 @@ export class Advisor {
   private async checkAndAdvise(): Promise<void> {
     if (this.isAnalyzing) return;
     if (!this.gemini.isInitialized()) return;
+    if (this.gemini.isBusy) return;
 
     const now = Date.now();
     if (now - this.lastAdviceTime < MIN_TIME_BETWEEN_ADVICE_MS) return;

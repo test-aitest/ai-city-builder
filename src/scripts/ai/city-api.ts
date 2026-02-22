@@ -60,14 +60,16 @@ export function getCityState(): any {
   };
 
   const buildings: BuildingEntry[] = [];
-  // Build grid: rows are Y, columns are X
-  // Header: "  0 1 2 3 ..."
+  // Build grid with compass annotations
+  // x = columns X0-X7 (W→E), y = rows Y0-Y7 (N→S)
   const gridLines: string[] = [];
-  const header = '  ' + Array.from({ length: city.size }, (_, i) => i).join(' ');
-  gridLines.push(header);
+  const colHeader = Array.from({ length: city.size }, (_, i) => `X${i}`).join(' ');
+  gridLines.push(`       W → E`);
+  gridLines.push(`    ${colHeader}`);
 
   for (let y = 0; y < city.size; y++) {
-    let row = y + ' ';
+    const prefix = y === 0 ? 'N' : y === city.size - 1 ? 'S' : ' ';
+    let row = `${prefix} Y${y} `;
     for (let x = 0; x < city.size; x++) {
       const tile = city.getTile(x, y);
       if (tile?.building) {

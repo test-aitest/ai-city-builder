@@ -12,7 +12,7 @@ export class AssetManager {
     'base': this.#loadTexture(`${baseUrl}textures/base.png`),
     'specular': this.#loadTexture(`${baseUrl}textures/specular.png`),
     'grid': this.#loadTexture(`${baseUrl}textures/grid.png`),
-    
+    'compass': this.#loadTexture(`${baseUrl}icons/direction.png`, true),
   };
 
   statusIcons = {

@@ -1,0 +1,68 @@
+[ 1653012ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1653012ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1653052ms] TypeError: requestEngine.start is not a function
+    at Module.initialize (http://127.0.0.1:3000/scripts/ai/index.ts?t=1771723643329:67:19)
+    at http://127.0.0.1:3000/scripts/game.js?t=1771723643329:69:68
+[ 1664457ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1664457ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1664478ms] TypeError: requestEngine.start is not a function
+    at Module.initialize (http://127.0.0.1:3000/scripts/ai/index.ts?t=1771723654838:67:19)
+    at http://127.0.0.1:3000/scripts/game.js?t=1771723654838:69:68
+[ 1671395ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1671395ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1671429ms] TypeError: requestEngine.start is not a function
+    at Module.initialize (http://127.0.0.1:3000/scripts/ai/index.ts?t=1771723661796:67:19)
+    at http://127.0.0.1:3000/scripts/game.js?t=1771723661796:69:68
+[ 1676365ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1676365ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1676382ms] TypeError: requestEngine.start is not a function
+    at Module.initialize (http://127.0.0.1:3000/scripts/ai/index.ts?t=1771723666743:67:19)
+    at http://127.0.0.1:3000/scripts/game.js?t=1771723666743:69:68
+[ 1682012ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1682012ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1682034ms] TypeError: requestEngine.start is not a function
+    at Module.initialize (http://127.0.0.1:3000/scripts/ai/index.ts?t=1771723672398:67:19)
+    at http://127.0.0.1:3000/scripts/game.js?t=1771723672398:69:68
+[ 1686742ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1686742ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1686793ms] TypeError: requestEngine.start is not a function
+    at Module.initialize (http://127.0.0.1:3000/scripts/ai/index.ts?t=1771723677136:67:19)
+    at http://127.0.0.1:3000/scripts/game.js?t=1771723677136:69:68
+[ 1692107ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1692107ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1692128ms] TypeError: requestEngine.start is not a function
+    at Module.initialize (http://127.0.0.1:3000/scripts/ai/index.ts?t=1771723682491:67:19)
+    at http://127.0.0.1:3000/scripts/game.js?t=1771723682491:69:68
+[ 1705467ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1705468ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1705503ms] TypeError: requestEngine.start is not a function
+    at Module.initialize (http://127.0.0.1:3000/scripts/ai/index.ts?t=1771723695818:67:19)
+    at http://127.0.0.1:3000/scripts/game.js?t=1771723695818:69:68
+[ 1727551ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1727551ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1738167ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1738167ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1746031ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1746031ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 1951174ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 1951175ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 2339539ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 2339539ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 2344947ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 2344947ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 2351048ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 2351048ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 2357699ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 2357699ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 2366491ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 2366491ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 2372228ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 2372228ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 2734776ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 2734776ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 3167100ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 3167100ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 3173767ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 3173767ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438
+[ 3179325ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14437
+[ 3179325ms] [WARNING] WebGL: INVALID_ENUM: texParameter: invalid parameter @ http://127.0.0.1:3000/@fs/Users/yabetatuki/lesson/ai-city-builder/node_modules/.vite/deps/chunk-BDCCGFBD.js?v=aaf24623:14438

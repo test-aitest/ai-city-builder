@@ -13,13 +13,18 @@ const LIVE_MODEL = 'gemini-2.5-flash-native-audio-latest';
 const SYSTEM_INSTRUCTION = `You are the AI Mayor of a conversational city-building game. Players talk to you by voice.
 There is NO toolbar — you are the ONLY way to build. Help build and manage the city using the available tools.
 
-The city is an 8x8 grid (0,0 top-left to 7,7 bottom-right).
+The city is an 8x8 grid with compass directions and labeled coordinates:
+- Columns: X0 (West) → X7 (East), where X0=0, X1=1, ..., X7=7
+- Rows: Y0 (North) → Y7 (South), where Y0=0, Y1=1, ..., Y7=7
 Always call get_city_state before placing buildings to check what's occupied.
 Building types: residential, commercial, industrial, road, power-plant, power-line.
 
-Citizens send requests when they detect problems. Use get_requests to check them.
-Use get_happiness to monitor the city's happiness score.
-Proactively suggest solutions based on citizen requests.
+## Citizen Request Handling
+When you receive a citizen request:
+1. Call get_city_state to check the current situation
+2. Propose a construction plan to the player and wait for approval
+3. After building, call ask_citizen to check if the citizen is satisfied
+4. If satisfied → call mark_request_resolved. If not → build more, then ask_citizen again.
 
 Keep voice responses short and natural (1-2 sentences).
 Respond in the same language the user speaks (English or Japanese).`;
@@ -42,6 +47,10 @@ export class VoiceSession {
   private onTranscript: TranscriptCallback;
   private isConnected = false;
   private audioChunksSent = 0;
+  /** True only when user explicitly clicks mic off */
+  private userDisconnected = false;
+  private reconnectAttempts = 0;
+  private static MAX_RECONNECT = 3;
 
   constructor(onStatus: StatusCallback, onTranscript: TranscriptCallback) {
     this.onStatus = onStatus;
@@ -54,14 +63,27 @@ export class VoiceSession {
 
   async toggle(): Promise<void> {
     if (this.status === 'idle') {
+      this.userDisconnected = false;
+      this.reconnectAttempts = 0;
       await this.connect();
     } else {
+      this.userDisconnected = true;
       this.disconnect();
     }
   }
 
   private async connect(): Promise<void> {
     if (!this.ai) return;
+
+    // Clean up any previous session state
+    if (this.session) {
+      try { this.session.close(); } catch (_) { /* ignore */ }
+      this.session = null;
+    }
+    if (this.audioContext) {
+      this.audioContext.close();
+      this.audioContext = null;
+    }
 
     this.setStatus('connecting');
     this.isConnected = false;
@@ -95,10 +117,25 @@ export class VoiceSession {
             console.error('[Voice] WebSocket error:', e.message || e);
           },
           onclose: (e: CloseEvent) => {
-            console.log(`[Voice] WebSocket closed: ${e.code} ${e.reason} (sent ${this.audioChunksSent} chunks)`);
+            console.log(`[Voice] WebSocket closed: code=${e.code} reason="${e.reason}" (sent ${this.audioChunksSent} chunks)`);
             this.isConnected = false;
             this.stopMicrophone();
-            this.setStatus('idle');
+
+            // Auto-reconnect if the user didn't manually disconnect
+            if (!this.userDisconnected && this.reconnectAttempts < VoiceSession.MAX_RECONNECT) {
+              this.reconnectAttempts++;
+              const delay = this.reconnectAttempts * 2000; // 2s, 4s, 6s
+              console.log(`[Voice] Auto-reconnecting in ${delay / 1000}s (attempt ${this.reconnectAttempts}/${VoiceSession.MAX_RECONNECT})`);
+              this.setStatus('connecting');
+              this.session = null;
+              setTimeout(() => {
+                if (!this.userDisconnected) {
+                  this.connect();
+                }
+              }, delay);
+            } else {
+              this.setStatus('idle');
+            }
           },
         },
         config: {
@@ -110,6 +147,7 @@ export class VoiceSession {
 
       // Session established - now start sending audio
       this.isConnected = true;
+      this.reconnectAttempts = 0;
       console.log('[Voice] Session established, starting audio capture');
       this.startAudioCapture();
       this.setStatus('listening');
@@ -175,8 +213,8 @@ export class VoiceSession {
           if (this.audioChunksSent <= 3) {
             console.log(`[Voice] Audio chunk #${this.audioChunksSent} sent (${base64.length} bytes base64)`);
           }
-        } catch (sendErr) {
-          console.warn('[Voice] Send failed, stopping');
+        } catch (sendErr: any) {
+          console.warn('[Voice] Send failed:', sendErr?.message || sendErr);
           this.isConnected = false;
         }
       };
@@ -303,6 +341,27 @@ export class VoiceSession {
         return CityAPI.getHappiness();
       case 'get_requests':
         return CityAPI.getActiveRequests();
+      case 'ask_citizen': {
+        const engine = (window as any).requestEngine;
+        if (!engine) return { error: 'Request engine not available' };
+        const status = engine.checkRequestStatus();
+        if (!status.request) return { message: status.detail };
+        // In voice mode, do NOT trigger citizen speech — the mayor voice model
+        // itself will relay the citizen's answer, preventing audio overlap.
+        return {
+          citizenName: status.request.citizenName,
+          requestType: status.request.type,
+          resolved: status.resolved,
+          detail: status.detail,
+          suggestion: status.suggestion,
+          hint: status.resolved
+            ? 'The citizen is satisfied. You should now call mark_request_resolved.'
+            : `Not resolved yet. Citizen says: ${status.suggestion}`,
+        };
+      }
+      case 'mark_request_resolved':
+        (window as any).requestEngine?.markResolved();
+        return { success: true, message: 'Request marked as resolved. Citizen evaluation will follow.' };
       default:
         return { error: `Unknown tool: ${name}` };
     }

@@ -179,9 +179,9 @@ export class City extends THREE.Group {
       score += 10;
     }
 
-    // Pending requests penalty: -5 per request, max -25
-    const pendingRequests = (window.requestEngine?.getActiveRequests?.() ?? []).length;
-    score -= Math.min(pendingRequests * 5, 25);
+    // Pending request penalty: -3 if there is an active request (max 1 at a time)
+    const hasActiveRequest = (window.requestEngine?.getActiveRequests?.() ?? []).length > 0;
+    if (hasActiveRequest) score -= 3;
 
     this.happiness = Math.max(0, Math.min(100, score));
   }

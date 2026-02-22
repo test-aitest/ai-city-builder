@@ -5,13 +5,18 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import type { Content, FunctionCall, Tool } from '@google/genai';
 import * as CityAPI from './city-api';
+import type { CitizenRequest } from './request-engine';
 
 const MODEL_ID = 'gemini-3-flash-preview';
 
 const SYSTEM_INSTRUCTION = `You are an AI Mayor assistant for a conversational city-building game.
 The player builds and manages their city ENTIRELY through natural language (chat and voice). There is NO toolbar — you are the only way to build.
 
-The city is an 8x8 grid. Coordinates go from (0,0) at top-left to (7,7) at bottom-right.
+The city is an 8x8 grid with compass directions and labeled coordinates:
+- Columns: X0 (West) → X7 (East), where X0=0, X1=1, ..., X7=7
+- Rows: Y0 (North) → Y7 (South), where Y0=0, Y1=1, ..., Y7=7
+- Example: "X0Y0" = northwest corner (0,0), "X7Y7" = southeast corner (7,7), "X3Y3" = (3,3)
+- Players may refer to locations by label (e.g. "X3Y2"), compass direction (e.g. "北側" = Y0-Y1, "南東" = high X + high Y), or by axis (e.g. "X5列" = column x:5, "Y3行" = row y:3). The label number directly equals the coordinate value.
 
 ## CRITICAL RULE: Always check before building
 **BEFORE placing ANY buildings, you MUST call get_city_state first** to see which tiles are already occupied.
@@ -47,6 +52,15 @@ Citizens send requests when they detect problems (housing shortage, unemployment
 2. Build from the CENTER outward
 3. Plan placement only on empty tiles, adjacent to existing roads
 4. Use apply_layout for bulk placement
+
+## Citizen Request Handling
+When you receive a citizen request:
+1. Call get_city_state to check the current situation
+2. Create a specific construction proposal (what to build, where) and present it to the player. **Always wait for the player to approve** (e.g. "お願い", "いいよ", "yes", "OK") before executing any construction.
+3. After building, call **ask_citizen** to check if the citizen is satisfied.
+   - If the citizen says the problem is resolved → call **mark_request_resolved**
+   - If the citizen says it's not enough → build more to address the remaining issue, then ask_citizen again
+4. **CRITICAL: Once the citizen is satisfied, you MUST call mark_request_resolved.** This is mandatory — without it, the citizen cannot give their final evaluation and the system will stall.
 
 Respond concisely. Use both English and Japanese as appropriate for the user's language.`;
 
@@ -151,6 +165,22 @@ export const cityTools: Tool[] = [
           properties: {},
         },
       },
+      {
+        name: 'ask_citizen',
+        description: 'Ask the citizen if their request has been addressed. Checks the current city state against the request and returns whether the problem is resolved and what is still needed. Use this after building to confirm before calling mark_request_resolved.',
+        parameters: {
+          type: Type.OBJECT,
+          properties: {},
+        },
+      },
+      {
+        name: 'mark_request_resolved',
+        description: 'MANDATORY: Call this immediately after completing construction for a citizen request. Without this call, the citizen cannot evaluate the result and the request system stalls. Always call this as the last step after building.',
+        parameters: {
+          type: Type.OBJECT,
+          properties: {},
+        },
+      },
     ],
   },
 ];
@@ -163,6 +193,11 @@ export class GeminiService {
   private chatHistory: Content[] = [];
   private onMessage: MessageCallback;
   private onToolCall: ToolCallCallback;
+  private _isBusy = false;
+
+  get isBusy(): boolean {
+    return this._isBusy;
+  }
 
   constructor(onMessage: MessageCallback, onToolCall: ToolCallCallback) {
     this.onMessage = onMessage;
@@ -186,12 +221,17 @@ export class GeminiService {
   async sendMessage(userMessage: string): Promise<string> {
     if (!this.ai) throw new Error('Gemini not initialized');
 
+    this._isBusy = true;
     this.chatHistory.push({
       role: 'user',
       parts: [{ text: userMessage }],
     });
 
-    return this.generateAndHandleTools();
+    try {
+      return await this.generateAndHandleTools();
+    } finally {
+      this._isBusy = false;
+    }
   }
 
   async sendMessageWithImage(userMessage: string, imageBase64: string): Promise<string> {
@@ -310,9 +350,53 @@ export class GeminiService {
         return CityAPI.getHappiness();
       case 'get_requests':
         return CityAPI.getActiveRequests();
+      case 'ask_citizen': {
+        const engine = (window as any).requestEngine;
+        if (!engine) return { error: 'Request engine not available' };
+        const status = engine.checkRequestStatus();
+        if (!status.request) return { message: status.detail };
+        // Use suggestion directly — no nested API call, fast and reliable
+        const citizenMsg = status.resolved
+          ? `市長、ありがとうございます！おかげで改善されました。`
+          : status.suggestion;
+        // Show citizen response in chat (voice is NOT triggered here to avoid blocking the tool loop)
+        const panel = (window as any).chatPanel;
+        if (panel) panel.addMessage('system', `🗣️ ${status.request.citizenName}: ${citizenMsg}`);
+        return {
+          citizenName: status.request.citizenName,
+          requestType: status.request.type,
+          resolved: status.resolved,
+          citizenResponse: citizenMsg,
+          detail: status.detail,
+          hint: status.resolved
+            ? 'The citizen is satisfied. You should now call mark_request_resolved.'
+            : `Not resolved yet. Citizen says: ${status.suggestion}`,
+        };
+      }
+      case 'mark_request_resolved':
+        (window as any).requestEngine?.markResolved();
+        return { success: true, message: 'Request marked as resolved. Citizen evaluation will follow.' };
       default:
         return { error: `Unknown tool: ${name}` };
     }
+  }
+
+  /**
+   * Send a citizen request to the mayor for a construction proposal.
+   * The message enters the chat history so the mayor can follow up.
+   */
+  async proposeForRequest(request: CitizenRequest): Promise<string> {
+    const prompt = `市民から以下のリクエストがありました。都市の現状を確認し、具体的な建設提案をプレイヤーに提示してください。
+プレイヤーが承認するまで建設を実行しないでください。
+承認後に建設を実行し、ask_citizen で市民に確認してください。
+市民が満足したら mark_request_resolved を呼んでください。まだ不十分なら追加で建設してください。
+
+リクエスト:
+- 市民名: ${request.citizenName}
+- 種類: ${request.type}
+- メッセージ: 「${request.message}」`;
+
+    return this.sendMessage(prompt);
   }
 
   clearHistory(): void {

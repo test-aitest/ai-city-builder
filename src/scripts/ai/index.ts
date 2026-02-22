@@ -67,19 +67,45 @@ export function initialize(game: any): void {
   );
   chatPanel.setMicToggleFn(() => voiceSession.toggle());
 
-  // Create request engine — citizens speak their requests and fulfillment aloud
-  requestEngine = new RequestEngine(game.city, (message, type, spokenText) => {
+  // Create request engine with notify callback
+  requestEngine = new RequestEngine(game.city, async (message, type, spokenText) => {
     if (type === 'fulfilled') {
       chatPanel.addMessage('system', `\u2705 ${message}`);
+    } else if (type === 'failed') {
+      chatPanel.addMessage('system', `\u26A0\uFE0F ${message}`);
     } else {
       chatPanel.addMessage('system', message);
     }
-    // Speak the citizen's words aloud
+    // Speak the citizen's words aloud — await so mayor waits for citizen to finish
     if (spokenText) {
-      citizenChat.speakAsCitizen(spokenText);
+      await citizenChat.speakAsCitizen(spokenText);
+    }
+    // When a new request arrives, ask the mayor for a proposal (after citizen finishes speaking)
+    if (type === 'new' && geminiService.isInitialized()) {
+      const req = requestEngine.getCurrentRequest();
+      if (req) {
+        const proposal = await geminiService.proposeForRequest(req);
+        chatPanel.addMessage('ai', proposal);
+      }
     }
   });
   (window as any).requestEngine = requestEngine;
+  (window as any).chatPanel = chatPanel;
+  (window as any).citizenChatDialog = citizenChat;
+
+  // Set the evaluation callback — citizen feedback is already handled by ask_citizen tool
+  // This just logs the happiness change
+  requestEngine.setEvaluateFn(async (request, _snapshotBefore, _snapshotAfter, happinessDelta) => {
+    const deltaStr = happinessDelta >= 0 ? `+${happinessDelta}` : `${happinessDelta}`;
+    console.log(`[RequestEngine] Evaluation complete: ${request.citizenName} (happiness ${deltaStr})`);
+  });
+
+  // Drive the request engine on a 1-second interval, matching the sim tick rate.
+  // NOTE: We cannot patch game.simulate because setInterval already captured a
+  // bound reference before ai.initialize() runs.
+  setInterval(() => {
+    requestEngine.onCityChanged();
+  }, 1000);
 
   // Show welcome message
   chatPanel.showWelcome();
@@ -93,7 +119,6 @@ export function initialize(game: any): void {
     voiceSession.initialize(apiKey);
     chatPanel.addMessage('system', 'Gemini API connected.');
     advisor.start();
-    requestEngine.start();
   } else {
     chatPanel.addMessage('system', 'VITE_GEMINI_API_KEY が未設定です。.env にキーを追加してサーバーを再起動してください。');
   }
